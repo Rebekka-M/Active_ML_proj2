@@ -11,19 +11,18 @@ ResultsRecord = namedtuple('ResultsRecord', ['query_id', 'score'])
 #n_repeats = 5
 #permutations=[np.random.permutation(X_train.shape[0]) for _ in range(n_repeats)]
 
-def pool_splits(X, y_good, y_cheap, cheap_pool_size, seed):
-    pool_idx, good_idx = train_test_split(X, test_size=cheap_pool_size, random_state=seed, stratisfy=y_good, shuffle=True)
+def pool_splits(y_good, y_cheap, cheap_pool_size, seed):
+    pool_idx, good_idx = train_test_split(y_good, test_size=cheap_pool_size, random_state=seed, stratisfy=y_good, shuffle=True)
     
-    X_train = X
     y_train = y_cheap.copy()
     y_train[good_idx] = y_good[good_idx]
 
-    X_pool = X_train[pool_idx]
-    y_pool = y_good[pool_idx]
+    return y_train, pool_idx, good_idx
 
-    return X_train, X_pool, y_train, y_pool, pool_idx, good_idx
 
 def pool_update(y_train, labels, labels_idx, pool_idx, good_idx):
+    # WARN: Function mutates y_train
+    
     # Update y_train probabilities to oracle labels
     labels_prob = np.zeros((len(labels), y_train.shape[1]))
     labels_prob[np.arange(len(labels)), labels] = 1
@@ -36,18 +35,16 @@ def pool_update(y_train, labels, labels_idx, pool_idx, good_idx):
     return y_train, pool_idx, good_idx
 
 
-
-def learning_loop(Estimator, X, y_good, X_test, y_test, y_cheap, cheap_pool_size, seed, n_queries):
+def learning_loop(Estimator, X, y_good, y_cheap, cheap_pool_size, n_queries, X_test, y_test, seed):
     # Set random seeds and initialize estimator
     rng = np.random.default_rng(seed)
     estimator = Estimator(seed=seed)
 
     # Prepare pool
-    X_train, X_pool, y_train, y_pool, pool_idx, good_idx = pool_splits(X, y_good, y_cheap, cheap_pool_size, seed)
+    y_train, pool_idx, good_idx = pool_splits(y_good, y_cheap, cheap_pool_size, seed)
     
     #Store results
     results = []
-    print('')
 
     #Initialize learner
     #start_indices = permutations[i_repeat][:1]
@@ -55,33 +52,47 @@ def learning_loop(Estimator, X, y_good, X_test, y_test, y_cheap, cheap_pool_size
     # TODO: Do we use vote entropy sampling?
     learner = ActiveLearner(estimator=estimator,
                             query_strategy=vote_entropy_sampling,
-                            X_training=X_train,
+                            X_training=X,
                             y_training=y_train)
 
-    for i_query in tqdm(range(1, n_queries), desc=f'XXX', leave=False):
+    for i_query in range(n_queries):
         #get learner uncertainty query
-        query_idx, query_inst = learner.query(X_pool)
+        y_new_idx, query_inst = learner.query(X[pool_idx])
 
         #obtaining new labels from the Oracle
-        y_new = y_good[query_idx]
+        y_new = y_good[y_new_idx]
 
         # supply label for queried instance
-        learner.teach(X_pool[query_idx], y_new)
+        learner.teach(X[y_new_idx], y_new)
 
         learner._set_classes() #this is needed to update for unknown class labels
 
         # Update pool
-        y_train, pool_idx, good_idx = pool_update(y_train, y_new, query_idx, pool_idx, good_idx)
+        y_train, pool_idx, good_idx = pool_update(y_train, y_new, y_new_idx, pool_idx, good_idx)
 
+        
+        # Test model
         score = learner.score(X_test, y_test)
 
+        # Track scores
         results.append(ResultsRecord(
-            i_query,
-            score))
+            i_query+1,
+            score
+        ))
+
 
     return results
 
-# We need to call this in main for parallel programming
-result = Parallel(n_jobs=-1)(delayed(train_committee)(i,i_members,X_train,y_train)
-                    for i, i_members in it.product(range(n_repeats), n_members))
-committee_results=[r for rs in result for r in rs]
+
+def learning_loop_multiple(Estimator, X, y_good, y_cheap, cheap_pool_sizes, n_queries, X_test, y_test, seed):
+    #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
+    return Parallel(n_jobs=1, batch_size="auto", verbose=5)(
+        delayed(learning_loop)(
+            Estimator, 
+            X, y_good, y_cheap, 
+            cheap_pool_size, n_queries,
+            X_test, y_test, 
+            seed
+        )
+        for cheap_pool_size in cheap_pool_sizes
+    )
