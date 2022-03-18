@@ -11,11 +11,12 @@ ResultsRecord = namedtuple('ResultsRecord', ['query_id', 'score'])
 #n_repeats = 5
 #permutations=[np.random.permutation(X_train.shape[0]) for _ in range(n_repeats)]
 
-def pool_splits(y_good, y_cheap, cheap_pool_size, seed):
+def pool_splits(y_good, y_cheap, y_lie, n_classes, cheap_pool_size, seed):
     pool_idx, good_idx = train_test_split(y_good, test_size=cheap_pool_size, random_state=seed, stratisfy=y_good, shuffle=True)
     
-    y_train = y_cheap.copy()
-    y_train[good_idx] = y_good[good_idx]
+    # Create probability distributions for targets
+    y_train = np.ones((len(y_cheap), y_cheap.shape[1])) * y_lie / n_classes
+    y_train[np.arange(len(y_cheap)), y_cheap] = 1 - y_lie
 
     return y_train, pool_idx, good_idx
 
@@ -35,13 +36,13 @@ def pool_update(y_train, labels, labels_idx, pool_idx, good_idx):
     return y_train, pool_idx, good_idx
 
 
-def learning_loop(Estimator, X, y_good, y_cheap, cheap_pool_size, n_queries, X_test, y_test, seed):
+def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, cheap_pool_size, n_queries, X_test, y_test, seed):
     # Set random seeds and initialize estimator
     rng = np.random.default_rng(seed)
     estimator = Estimator(seed=seed)
 
     # Prepare pool
-    y_train, pool_idx, good_idx = pool_splits(y_good, y_cheap, cheap_pool_size, seed)
+    y_train, pool_idx, good_idx = pool_splits(y_good, y_cheap, y_lie, n_classes, cheap_pool_size, seed)
     
     #Store results
     results = []
@@ -84,12 +85,13 @@ def learning_loop(Estimator, X, y_good, y_cheap, cheap_pool_size, n_queries, X_t
     return results
 
 
-def learning_loop_multiple(Estimator, X, y_good, y_cheap, cheap_pool_sizes, n_queries, X_test, y_test, seed):
+def learning_loop_multiple(Estimator, X, y_good, y_cheap, y_lie, n_classes, cheap_pool_sizes, n_queries, X_test, y_test, seed):
     #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
     return Parallel(n_jobs=1, batch_size="auto", verbose=5)(
         delayed(learning_loop)(
             Estimator, 
             X, y_good, y_cheap, 
+            y_lie, n_classes,
             cheap_pool_size, n_queries,
             X_test, y_test, 
             seed
