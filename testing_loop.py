@@ -7,6 +7,8 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import pickle
+from torchvision import datasets
+import torch
 
 class LogRegWrapper(LogisticRegression):
     def __init__(self, penalty="l2", *, dual=False, tol=0.0001, C=1, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver="lbfgs", max_iter=100, multi_class="auto", verbose=0, warm_start=False, n_jobs=None, l1_ratio=None, seed=None):
@@ -16,7 +18,7 @@ class LogRegWrapper(LogisticRegression):
         return super().fit(X, y.argmax(axis=1))
 
 seed = 1
-n_classes = 5
+n_classes = 10
 n_queries = 800
 n_samples = 10000
 split_idx = 4000
@@ -31,6 +33,11 @@ X, y_good = make_classification(n_samples=n_samples,
                            flip_y=0,
                            random_state=seed)
 
+
+training_set = datasets.MNIST(root="./data", train=True,  download=True)#, transform=transform)
+ds = torch.utils.data.Subset(training_set, range(n_samples))
+X = np.array([np.array(i[0], dtype=np.float32)/255 for i in ds])
+y_good = np.array([np.array(i[1]) for i in ds])
 
 X_train = X[:split_idx]
 X_test = X[split_idx:]
