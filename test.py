@@ -70,7 +70,11 @@ wrapped_model.fit(X, y_train)
 
 print(f"Accuracy : {np.mean(y == wrapped_model.predict(X))}")
 
+ds2 = torch.utils.data.Subset(training_set, range(1000, 10000))
+X2 = np.array([np.array(i[0], dtype=np.float32)/255 for i in ds2])
+y2 = np.array([np.array(i[1]) for i in ds2])
 
+print(f"Accuracy2 : {np.mean(y2 == wrapped_model.predict(X2))}")
 
 
 
