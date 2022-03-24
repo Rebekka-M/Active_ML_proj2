@@ -23,15 +23,15 @@ n_queries = 800
 n_samples = 10000
 split_idx = 4000
 # Using sklearn generated random dataset
-X, y_good = make_classification(n_samples=n_samples,
-                           n_features=25,
-                           n_informative = 15,
-                           n_redundant = 10,
-                           n_classes=n_classes,
-                           n_clusters_per_class = 1,
-                           weights=None,
-                           flip_y=0,
-                           random_state=seed)
+# X, y_good = make_classification(n_samples=n_samples,
+#                            n_features=25,
+#                            n_informative = 15,
+#                            n_redundant = 10,
+#                            n_classes=n_classes,
+#                            n_clusters_per_class = 1,
+#                            weights=None,
+#                            flip_y=0,
+#                            random_state=seed)
 
 
 training_set = datasets.MNIST(root="./data", train=True,  download=True)#, transform=transform)
@@ -54,7 +54,7 @@ y_cheap = np.zeros((len(y_lies), len(y_train_good)))
 for i, lie in enumerate(y_lies):
     y_cheap[i, :] = y_train_good.copy()
     mask = np.random.uniform(0,1,len(y_train_good)) < lie
-    y_cheap[i, mask] = np.random.uniform(0,n_classes, np.sum(mask))
+    y_cheap[i, mask] = np.random.uniform(0, n_classes, np.sum(mask))
 
 results = learning_loop_multiple(
     Estimator=ModelWrapper,

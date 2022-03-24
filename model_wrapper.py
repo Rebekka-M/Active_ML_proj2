@@ -87,5 +87,5 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
         X = torch.tensor(X).unsqueeze(dim=1)
         preds = self.model(X)
         
-        preds = torch.nn.functional.softmax(preds)
+        preds = torch.nn.functional.softmax(preds, dim=1)
         return preds.detach().numpy()

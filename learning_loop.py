@@ -67,6 +67,7 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
                             y_training=y_train)
 
     for i_query in range(n_queries):
+        print(f"{y_lie}: {i_query}/{n_queries}", flush=True)
         #get learner uncertainty query
         y_new_idx, query_inst = learner.query(X[pool_idx])
         y_new_idx = pool_idx[y_new_idx]
@@ -100,7 +101,7 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
 
 def learning_loop_multiple(Estimator, X, y_good, y_cheaps, y_lies, n_classes, good_pool_size, n_queries, X_test, y_test, seed):
     #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
-    return Parallel(n_jobs=1, batch_size="auto", verbose=5)(
+    return Parallel(n_jobs=5, batch_size="auto", verbose=5)(
         delayed(learning_loop)(
             Estimator, 
             X, y_good, y_cheaps[i], 
