@@ -15,7 +15,7 @@ def pool_splits(y_good, y_cheap, y_lie, n_classes, cheap_pool_size, seed):
     pool_idx, good_idx = train_test_split(y_good, test_size=cheap_pool_size, random_state=seed, stratisfy=y_good, shuffle=True)
     
     # Create probability distributions for targets
-    y_train = np.ones((len(y_cheap), y_cheap.shape[1])) * y_lie / n_classes
+    y_train = np.ones((len(y_cheap), y_cheap.shape[1])) * y_lie / (n_classes - 1)
     y_train[np.arange(len(y_cheap)), y_cheap] = 1 - y_lie
 
     return y_train, pool_idx, good_idx
