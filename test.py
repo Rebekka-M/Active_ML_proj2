@@ -43,13 +43,18 @@ def load_data(batch_size = 500, data_workers = 1, oracle_train_size=10000, train
 
 
 #training_dl, calibration_dl, validation_dl = load_data(batch_size=1000)
-#transform = transforms.Compose([transforms.ToTensor()])
-training_set = datasets.MNIST(root="./data", train=True,  download=True)
+#transform = transforms.Compose([transforms.Lambda(lambda x: np.array(x, dtype=np.float32)/255)])
+training_set = datasets.MNIST(root="./data", train=True,  download=True)#, transform=transform)
 ds = torch.utils.data.Subset(training_set, range(1000))
-X = np.array([np.array(i[0]) for i in ds])
+X = np.array([np.array(i[0], dtype=np.float32)/255 for i in ds])
 y = np.array([np.array(i[1]) for i in ds])
 
-# Best hypers from Active ML proj 1 
+n_class = 10
+y_cheap = y
+y_train = np.ones((len(y_cheap), n_class)) * 0.2 / (n_class - 1)
+y_train[np.arange(len(y_cheap)), y_cheap] = 1 - 0.2
+
+# Best hypers from Active ML proj 1
 validation_accuracies = np.load('bayesian_optimization_accuracies_val.npy')
 hyperparameters = np.load('bayesian_optimization_hyperparameters.npy')
 hyperparameter = hyperparameters[np.argmax(validation_accuracies)]
@@ -61,9 +66,12 @@ test_model = model.CNN_class(*hyperparameter[2:], n_classes=10)
 
 wrapped_model = model_wrapper.ModelWrapper(test_model, lr=10**(-hyperparameter[0]), weight_decay=10**(-hyperparameter[1]))
 
-wrapped_model.fit(X, y)
+wrapped_model.fit(X, y_train)
 
-wrapped_model(X)
+print(f"Accuracy : {np.mean(y == wrapped_model.predict(X))}")
+
+
+
 
 
 """
