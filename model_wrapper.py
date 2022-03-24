@@ -4,6 +4,7 @@ import torch
 from vars import *
 from lauges_tqdm import tqdm
 import numpy as np
+from model import CNN_class
 
 
 class ModelWrapper(BaseEstimator, ClassifierMixin):
@@ -11,7 +12,7 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
     ModelWrapper that prepares the model to be used in the active learning framework
     (If change to EMNIST use the lr=10**(-2.37391888) from our previous project
     """
-    def __init__(self, model, lr=0.015, weight_decay=10**(-5.41253564), epochs=35):
+    def __init__(self, seed=1, model = CNN_class(4,4), lr=0.015, weight_decay=10**(-5.41253564), epochs=35):
         self.model = model
         self.lr = lr 
         self.weight_decay = weight_decay
