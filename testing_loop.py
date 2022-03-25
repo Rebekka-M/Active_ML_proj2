@@ -80,7 +80,7 @@ scores = np.zeros((len(results), n_queries))
 for i in range(len(results)):
     _, scores[i,:] = zip(*results[i])
 
-for i in range(results):
+for i in range(len(scores)):
     plt.plot(scores[i,:])
 plt.show()
 
