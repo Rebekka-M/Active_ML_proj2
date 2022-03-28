@@ -19,7 +19,7 @@ class LogRegWrapper(LogisticRegression):
 
 seed = 1
 n_classes = 10
-n_queries = 80
+n_queries = 400
 n_samples = 1000
 split_idx = 400
 # Using sklearn generated random dataset
