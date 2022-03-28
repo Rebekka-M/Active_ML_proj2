@@ -12,8 +12,9 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
     ModelWrapper that prepares the model to be used in the active learning framework
     (If change to EMNIST use the lr=10**(-2.37391888) from our previous project
     """
-    def __init__(self, seed=1, model = CNN_class(4, 4, n_classes=10), lr=0.015, weight_decay=10**(-5.41253564), epochs=35):
-        self.model = model
+
+    def __init__(self, seed=1, lr=0.015, weight_decay=10**(-5.41253564), epochs=35):
+        self.model = CNN_class(4, 4, n_classes=10)
         self.lr = lr 
         self.weight_decay = weight_decay
         self.epochs = epochs
@@ -30,6 +31,10 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
         X : (batch_size, 28, 28) array that contains images
         y : (batch_size, label_space(10)) array of probabilities of each class
         """
+        # Reset model 
+        self.model.__init__(4, 4, n_classes=10)
+        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        
         # Takes inputs and outputs to tensors and enables training
         X = X.reshape((-1, 1, 28, 28))
         X = torch.tensor(X)
@@ -38,7 +43,7 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
 
         X = X.to(DEVICE)
         y = y.to(DEVICE)
-
+        """
         for epoch in range(self.epochs):
             #Training loop
             self.optimizer.zero_grad()
@@ -48,10 +53,36 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
             loss = self.criterion(preds, y)
             loss.backward()
 
-            if epoch % 10 == 5 and printing:
+            if epoch % 10 == 5:#and printing:
                 print(f"Accuracy on {epoch} : {np.mean(torch.argmax(y, dim=1).detach().numpy() == torch.argmax(preds, dim=1).detach().numpy())}")
 
             self.optimizer.step()
+            
+        """
+        acc_prev = 0 
+        acc_curr = 0
+        epoch = 0
+        while epoch <= self.epochs or abs(acc_curr - acc_prev)/acc_prev >= 0.001: #for epoch in range(self.epochs):
+            epoch += 1
+            acc_prev = acc_curr
+            
+            #Training loop
+            self.optimizer.zero_grad()
+
+            preds = self.model(X)
+            # loss = torch.sum(-torch.log(torch.nn.functional.softmax(preds))*y)
+            loss = self.criterion(preds, y)
+            loss.backward()
+            self.optimizer.step()
+
+            acc_curr = np.mean(torch.argmax(y, dim=1).detach().numpy() == torch.argmax(preds, dim=1).detach().numpy())
+            if epoch % 10 == 5 and printing:
+                print(f"Accuracy on {epoch} : {acc_curr}, {acc_prev}, {abs(acc_curr - acc_prev)/acc_prev}")
+
+            
+        
+        #print(acc_curr, acc_prev)
+        
 
 
     def predict(self, X):

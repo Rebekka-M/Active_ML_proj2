@@ -19,10 +19,14 @@ def labels_to_probs(labels, p_correct, n_classes):
     return probs
 
 def pool_splits(y_good, y_cheap, y_lie, n_classes, good_pool_size, seed):
-    pool_idx, good_idx = train_test_split(np.arange(len(y_good)), test_size=good_pool_size, random_state=seed, stratify=y_good, shuffle=True)
+    if good_pool_size > 0:
+        pool_idx, good_idx = train_test_split(np.arange(len(y_good)), test_size=good_pool_size, random_state=seed, stratify=y_good, shuffle=True)
+    else:
+        pool_idx, good_idx = np.arange(len(y_good)), np.zeros(0, dtype=int)
     
     # Create probability distributions for targets
     y_train = labels_to_probs(y_cheap, 1-y_lie, n_classes)
+    y_train[good_idx] = labels_to_probs(y_good[good_idx], 1, n_classes)
 
     return y_train, pool_idx, good_idx
 
@@ -31,6 +35,7 @@ def pool_update(y_train, labels, labels_idx, pool_idx, good_idx):
     # WARN: Function mutates y_train
     
     # Update y_train probabilities to oracle labels
+    # y_train[labels_idx] = labels_to_probs(labels, 1, n_classes=y_train.shape[1])
     labels_prob = np.zeros((len(labels), y_train.shape[1]))
     labels_prob[np.arange(len(labels)), labels] = 1
     y_train[labels_idx] = labels_prob
@@ -67,7 +72,6 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
                             y_training=y_train)
 
     for i_query in range(n_queries):
-        print(f"{y_lie}: {i_query}/{n_queries}", flush=True)
         #get learner uncertainty query
         y_new_idx, query_inst = learner.query(X[pool_idx])
         y_new_idx = pool_idx[y_new_idx]
@@ -88,6 +92,7 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
         
         # Test model
         score = learner.score(X_test, y_test)
+        print(f"{y_lie}: {i_query}/{n_queries} accuracy: {score}", flush=True)
 
         # Track scores
         results.append(ResultsRecord(
@@ -101,7 +106,7 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
 
 def learning_loop_multiple(Estimator, X, y_good, y_cheaps, y_lies, n_classes, good_pool_size, n_queries, X_test, y_test, seed):
     #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
-    return Parallel(n_jobs=5, batch_size="auto", verbose=5)(
+    return Parallel(n_jobs=1, batch_size="auto", verbose=5)(
         delayed(learning_loop)(
             Estimator, 
             X, y_good, y_cheaps[i], 

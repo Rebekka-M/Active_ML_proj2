@@ -19,9 +19,9 @@ class LogRegWrapper(LogisticRegression):
 
 seed = 1
 n_classes = 10
-n_queries = 800
-n_samples = 10000
-split_idx = 4000
+n_queries = 80
+n_samples = 1000
+split_idx = 400
 # Using sklearn generated random dataset
 # X, y_good = make_classification(n_samples=n_samples,
 #                            n_features=25,
@@ -63,11 +63,12 @@ results = learning_loop_multiple(
     y_cheaps=y_cheap,
     y_lies=y_lies,
     n_classes=n_classes,
-    good_pool_size=0.05,
+    good_pool_size=0.00,
     n_queries=n_queries,
     X_test=X_test,
     y_test=y_test_good,
-    seed=seed)
+    seed=seed
+)
 
 with open('testing_loop.pickle', 'wb') as handle:
     pickle.dump(results, handle)
