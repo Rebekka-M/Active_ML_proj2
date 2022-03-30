@@ -18,7 +18,7 @@ class LogRegWrapper(LogisticRegression):
     def fit(self, X, y, sample_weight=None):
         return super().fit(X, y.argmax(axis=1))
 
-seed = 1
+seed = 69
 n_classes = 10
 n_queries = 380
 n_samples = 2000
@@ -73,11 +73,11 @@ results = learning_loop_multiple(
     seed=seed
 )
 
-with open('testing_loop.pickle', 'wb') as handle:
+with open(f'testing_loop_{seed}.pkl', 'wb') as handle:
     pickle.dump(results, handle)
 
 #%%
-with open('testing_loop.pickle', 'rb') as handle:
+with open(f'testing_loop_{seed}.pkl', 'rb') as handle:
     results = pickle.load(handle)
 
 scores = np.zeros((len(results), n_queries))
