@@ -7,10 +7,22 @@ from modAL.models import ActiveLearner, Committee
 from sklearn.model_selection import train_test_split
 from collections import namedtuple
 from tqdm.notebook import tqdm, trange
+import torch
+import os
+import random
+
 ResultsRecord = namedtuple('ResultsRecord', ['query_id', 'score'])
 # in case repetitions are desired
 #n_repeats = 5
 #permutations=[np.random.permutation(X_train.shape[0]) for _ in range(n_repeats)]
+
+
+def seed_everything(seed_value):
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    torch.manual_seed(seed_value)
+    os.environ['PYTHONHASHSEED'] = str(seed_value)
+
 
 def labels_to_probs(labels, p_correct, n_classes):
     probs = np.ones((len(labels), n_classes)) * (1-p_correct) / (n_classes - 1)
@@ -47,8 +59,9 @@ def pool_update(y_train, labels, labels_idx, pool_idx, good_idx):
     return y_train, pool_idx, good_idx
 
 
-def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_size, n_queries, X_test, y_test, seed):
+def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_size, n_queries, X_test, y_test, seed, CNN_seed):
     # Set random seeds and initialize estimator
+    seed_everything(CNN_seed)
     rng = np.random.default_rng(seed)
     estimator = Estimator(seed=seed)
     
@@ -113,7 +126,7 @@ def learning_loop_multiple(Estimator, X, y_good, y_cheaps, y_lies, n_classes, go
             0, n_classes,
             good_pool_size, n_queries,
             X_test, y_test, 
-            s
+            seed, s
         )
         for s in [183740, 69, 42, 24, 2022]
     )
