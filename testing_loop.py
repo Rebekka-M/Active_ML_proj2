@@ -84,11 +84,11 @@ results = learning_loop_multiple(
     seed=seed
 )
 
-with open(f'testing_loop_{seed_mine}.pkl', 'wb') as handle:
+with open(f'testing_loop_baseline.pkl', 'wb') as handle:
     pickle.dump(results, handle)
 
 #%%
-with open(f'testing_loop_{seed_mine}.pkl', 'rb') as handle:
+with open(f'testing_loop_baseline.pkl', 'rb') as handle:
     results = pickle.load(handle)
 
 scores = np.zeros((len(results), n_queries))

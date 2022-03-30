@@ -68,8 +68,8 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
     # TODO: Do we use vote entropy sampling?
     learner = ActiveLearner(estimator=estimator,
                             query_strategy=entropy_sampling,
-                            X_training=X,
-                            y_training=y_train)
+                            X_training=X[good_idx],
+                            y_training=y_train[good_idx].copy())
 
     for i_query in range(n_queries):
         #get learner uncertainty query
@@ -80,9 +80,9 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
         y_new = y_good[y_new_idx]
 
         # supply label for queried instance
-        # learner.teach(X[y_new_idx], labels_to_probs(y_new, 1, n_classes))
-        learner.y_training[y_new_idx] = labels_to_probs(y_new, 1, n_classes)
-        learner._fit_to_known(bootstrap=False)
+        learner.teach(X[y_new_idx], labels_to_probs(y_new, 1, n_classes))
+        # learner.y_training[y_new_idx] = labels_to_probs(y_new, 1, n_classes)
+        # learner._fit_to_known(bootstrap=False)
 
         # learner._set_classes() #this is needed to update for unknown class labels
 
@@ -106,14 +106,14 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
 
 def learning_loop_multiple(Estimator, X, y_good, y_cheaps, y_lies, n_classes, good_pool_size, n_queries, X_test, y_test, seed):
     #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
-    return Parallel(n_jobs=5, batch_size="auto", verbose=5)(
+    return Parallel(n_jobs=2, batch_size="auto", verbose=5)(
         delayed(learning_loop)(
             Estimator, 
-            X, y_good, y_cheaps[i], 
-            y_lies[i], n_classes,
+            X, y_good, y_cheaps[0], 
+            0, n_classes,
             good_pool_size, n_queries,
             X_test, y_test, 
-            seed
+            s
         )
-        for i in range(len(y_lies))
+        for s in [183740, 69, 42, 24, 2022]
     )
