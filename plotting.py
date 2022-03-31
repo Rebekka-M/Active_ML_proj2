@@ -12,17 +12,25 @@ eps = [f"$\epsilon$={round(i - i / 10, 2)}" for i in probs]
 eps[0] = "No cheap data"
 
 # Get all files in pkl? ending with .pkl
-files = glob.glob("pkl3/*.pkl")
-results = []
-for file in files:
-    with open(file, 'rb') as f:
-        result = pickle.load(f)
-    results.append(result)
 
-# Turn results list into ndarray and take the mean over the different experiments
-results = np.array(results)
-# results = np.median(results, axis=0)
-results = np.mean(results, axis=0)
+def get_results(filename):
+    files = glob.glob(f"{filename}/*.pkl")
+    results = []
+    for file in files:
+        with open(file, 'rb') as f:
+            result = pickle.load(f)
+        results.append(result)
+    return np.mean(results,axis = 0)
+
+results_zero = get_results('pkl3-baseline')
+results_nonzero = get_results('pkl3')
+
+results = np.array([results_nonzero[0], results_zero[0], *results_nonzero[1:]])
+
+# # Turn results list into ndarray and take the mean over the different experiments
+# results = np.array(results)
+# # results = np.median(results, axis=0)
+# results = np.mean(results, axis=0)
 
 
 def plot(plot_idx: Iterable, ylim: list, saveas: str, yticks: Optional = None, filter: bool = True):
