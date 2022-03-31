@@ -66,7 +66,13 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
     #start_indices = permutations[i_repeat][:1]
 
     # TODO: Do we use vote entropy sampling?
-    learner = ActiveLearner(estimator=estimator,
+    if y_lie == -1:
+        learner = ActiveLearner(estimator=estimator,
+                            query_strategy=entropy_sampling,
+                            X_training=X[good_idx],
+                            y_training=y_train[good_idx].copy())
+    else:
+        learner = ActiveLearner(estimator=estimator,
                             query_strategy=entropy_sampling,
                             X_training=X,
                             y_training=y_train)
@@ -81,8 +87,11 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
 
         # supply label for queried instance
         # learner.teach(X[y_new_idx], labels_to_probs(y_new, 1, n_classes))
-        learner.y_training[y_new_idx] = labels_to_probs(y_new, 1, n_classes)
-        learner._fit_to_known(bootstrap=False)
+        if y_lie == -1:
+            learner.teach(X[y_new_idx], labels_to_probs(y_new, 1, n_classes))
+        else:
+            learner.y_training[y_new_idx] = labels_to_probs(y_new, 1, n_classes)
+            learner._fit_to_known(bootstrap=False)
 
         # learner._set_classes() #this is needed to update for unknown class labels
 
@@ -106,7 +115,7 @@ def learning_loop(Estimator, X, y_good, y_cheap, y_lie, n_classes, good_pool_siz
 
 def learning_loop_multiple(Estimator, X, y_good, y_cheaps, y_lies, n_classes, good_pool_size, n_queries, X_test, y_test, seed):
     #TODO: Increase amount of parallel jobs. Set to -1 to use all available resources.
-    return Parallel(n_jobs=5, batch_size="auto", verbose=5)(
+    return Parallel(n_jobs=-1, batch_size="auto", verbose=5)(
         delayed(learning_loop)(
             Estimator, 
             X, y_good, y_cheaps[i], 
