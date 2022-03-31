@@ -13,7 +13,7 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
     (If change to EMNIST use the lr=10**(-2.37391888) from our previous project
     """
 
-    def __init__(self, seed=1, lr=0.015, weight_decay=10**(-5.41253564), epochs=35):
+    def __init__(self, seed=1, lr=0.0015, weight_decay=10**(-5.41253564), epochs=45):
         self.model = CNN_class(4, 4, n_classes=10)
         self.lr = lr 
         self.weight_decay = weight_decay
