@@ -8,12 +8,17 @@ files = glob.glob("pkl3/*.pkl")
 results_nonzero = []
 results_zero = []
 
+found_zero = False
+
 for file in files:
     with open(file, 'rb') as f:
         result = pickle.load(f)
     if len(result) == 11:
         results_nonzero.append(result)
+        print('lidt sejt')
     elif len(result) == 1:
+        print('pænt sejt')
+        found_zero = True
         results_zero.append(result)
     else:
         raise ValueError('Something\'s wrong with the shapes')
@@ -23,11 +28,15 @@ probs = [-1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 eps = [f"$\epsilon$={round(i - i / 10, 2)}" for i in probs]
 eps[0] = "No cheap data"
 
-# (n_files, 12, 380, 2)
+results_nonzero = np.mean(results_nonzero, axis = 0)
 
-results = np.array(results_nonzero[0], results_zero, )
-# results = np.median(results, axis=0)
-results = np.mean(results, axis=0)
+if found_zero:
+    results_zero = np.mean(results_zero, axis = 0)
+    results = np.array([results_nonzero[0], results_zero[0], *results_nonzero])
+else:
+    results = np.array(results_nonzero)
+    probs.pop(1)
+
 
 fig = plt.figure(figsize=(10, 10))
 
