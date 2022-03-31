@@ -6,7 +6,7 @@ from scipy.ndimage import gaussian_filter1d
 from typing import Optional, Iterable
 
 sigma = 2
-probs = [-1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+probs = [-1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
 eps = [f"$\epsilon$={round(i - i / 10, 2)}" for i in probs]
 eps[0] = "No cheap data"
@@ -46,7 +46,7 @@ def plot(plot_idx: Iterable, ylim: list, saveas: str, yticks: Optional = None, f
     if yticks is not None:
         plt.yticks(yticks, fontsize=15)
     else:
-        plt.yticks([i / 10 for i in range(3, 11)], fontsize=15)
+        plt.yticks([i / 10 for i in range(4, 11)], fontsize=15)
     plt.xticks([j for j in range(20, 401, 20)], fontsize=13)
     plt.legend(fontsize=14)
     plt.title(r"Accuracy vs. Number of expensive data points $n_{ex}$", fontsize=20)
@@ -56,7 +56,7 @@ def plot(plot_idx: Iterable, ylim: list, saveas: str, yticks: Optional = None, f
     plt.savefig(f'{saveas}.png', bbox_inches='tight')
 
 
-plot(plot_idx=range(11), ylim=[0.35, 1], saveas='non_filtered_results', filter=False)  # Raw data
+plot(plot_idx=range(len(results)), ylim=[0.35, 1], saveas='non_filtered_results', filter=False)  # Raw data
 plot(plot_idx=[0, 1, 2, 6, 7, 8, 9, 10], ylim=[0.80, 1], saveas='allaccs', filter=True)  # All accs
-plot(plot_idx=[1, 2, 3, 4, 5, 6], ylim=None, saveas='top5accs', yticks=[0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.91],
+plot(plot_idx=[0, 1, 2, 3, 4, 5, 6], ylim=[0.84, 0.91], saveas='top5accs', yticks=[0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.91],
      filter=True)
