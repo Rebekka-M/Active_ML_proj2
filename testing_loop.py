@@ -60,7 +60,7 @@ X_test = X[test_idx]
 y_train_good = y_good[train_idx]
 y_test_good = y_good[test_idx]
 
-y_lies = [-1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+y_lies = [-1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 # y_cheap = y_train_good.copy()
 # mask = np.random.uniform(0,1,len(y_cheap)) < y_lie
 # y_cheap[mask] = np.random.uniform(0,n_classes, np.sum(mask))
