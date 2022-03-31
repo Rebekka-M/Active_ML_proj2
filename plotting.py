@@ -13,7 +13,6 @@ for file in files:
 
 probs = [-1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
-print([round(i - i / 10, 2) for i in probs])
 eps = [f"$\epsilon$={round(i - i / 10, 2)}" for i in probs]
 eps[0] = "No cheap data"
 
