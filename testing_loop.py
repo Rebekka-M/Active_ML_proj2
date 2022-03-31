@@ -11,6 +11,7 @@ from torchvision import datasets
 import torch
 from sklearn.model_selection import train_test_split
 import os
+import sys
 
 class LogRegWrapper(LogisticRegression):
     def __init__(self, penalty="l2", *, dual=False, tol=0.0001, C=1, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver="lbfgs", max_iter=100, multi_class="auto", verbose=0, warm_start=False, n_jobs=None, l1_ratio=None, seed=None):
@@ -26,7 +27,8 @@ def seed_everything(seed_value):
     os.environ['PYTHONHASHSEED'] = str(seed_value)
 
 
-seed_mine = 2022
+seed_mine = int(sys.argv[-1])
+print(seed_mine)
 seed_everything(seed_mine)
 seed = 69
 
@@ -88,15 +90,15 @@ with open(f'testing_loop_{seed_mine}.pkl', 'wb') as handle:
     pickle.dump(results, handle)
 
 #%%
-with open(f'testing_loop_{seed_mine}.pkl', 'rb') as handle:
-    results = pickle.load(handle)
+# with open(f'testing_loop_{seed_mine}.pkl', 'rb') as handle:
+#     results = pickle.load(handle)
 
-scores = np.zeros((len(results), n_queries))
-for i in range(len(results)):
-    _, scores[i,:] = zip(*results[i])
+# scores = np.zeros((len(results), n_queries))
+# for i in range(len(results)):
+#     _, scores[i,:] = zip(*results[i])
 
-for i in range(len(scores)):
-    plt.plot(scores[i,:])
-plt.show()
+# for i in range(len(scores)):
+#     plt.plot(scores[i,:])
+# plt.show()
 
 # %%
