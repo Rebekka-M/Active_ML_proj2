@@ -22,10 +22,13 @@ def get_results(filename):
         results.append(result)
     return np.mean(results,axis = 0)
 
-results_zero = get_results('pkl3-baseline')
-results_nonzero = get_results('pkl3')
+# results_zero = get_results('pkl3-baseline')
+# results_nonzero = get_results('pkl3')
 
-results = np.array([results_nonzero[0], results_zero[0], *results_nonzero[1:]])
+# results = np.array([results_nonzero[0], results_zero[0], *results_nonzero[1:]])
+
+results = get_results('pkl4')
+
 
 # # Turn results list into ndarray and take the mean over the different experiments
 # results = np.array(results)
@@ -42,12 +45,12 @@ def plot(plot_idx: Iterable, ylim: list, saveas: str, yticks: Optional = None, f
 
     if ylim is not None:
         plt.ylim(ylim)
-    plt.xlim([15, 405])
+    plt.xlim([15, 1000])
     if yticks is not None:
         plt.yticks(yticks, fontsize=15)
     else:
         plt.yticks([i / 10 for i in range(4, 11)], fontsize=15)
-    plt.xticks([j for j in range(20, 401, 20)], fontsize=13)
+    plt.xticks([j for j in range(20, 1000, 60)], fontsize=13)
     plt.legend(fontsize=14)
     plt.title(r"Accuracy vs. Number of expensive data points $n_{ex}$", fontsize=20)
     plt.xlabel(r"$n_{ex}$", fontsize=16)
